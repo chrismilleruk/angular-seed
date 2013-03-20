@@ -10367,6 +10367,12 @@ function bootstrap(element, modules) {
       scope.$apply(function() {
         element.data('$injector', injector);
         compile(element)(scope);
+
+        // Handle angular-scenario.angularInit() race condition..
+        // ..when it runs in the future
+        var cls = ': ' + modules[2] + ';';
+        cls = 'ng-app' + (cls||'');
+        element.addClass(cls);
       });
     }]
   );
