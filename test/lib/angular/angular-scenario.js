@@ -10298,8 +10298,9 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  </doc:example>
  *
  */
-function angularInit(element, bootstrap) {
+function angularInit(element, callback, errCallback) {
   var elements = [element],
+      document = element.ownerDocument || element,
       appElement,
       module,
       names = ['ng:app', 'ng-app', 'x-ng-app', 'data-ng-app'],
@@ -10338,7 +10339,9 @@ function angularInit(element, bootstrap) {
     }
   });
   if (appElement) {
-    bootstrap(appElement, module ? [module] : []);
+    callback(appElement, module ? [module] : []);
+  } else if (callback !== bootstrap && errCallback) {
+    errCallback();
   }
 }
 
@@ -10373,6 +10376,10 @@ function bootstrap(element, modules) {
         var cls = ': ' + modules[2] + ';';
         cls = 'ng-app' + (cls||'');
         element.addClass(cls);
+
+        // ..when it has already run.
+        var document = element[0].ownerDocument || element[0];
+        JQLite(document.body).triggerHandler('ngBootstrap');
       });
     }]
   );
@@ -24637,7 +24644,7 @@ angular.scenario.Application.prototype.executeAction = function(action) {
   if (!$window.angular) {
     return action.call(this, $window, _jQuery($window.document));
   }
-  angularInit($window.document, function(element) {
+  var scenarioBootstrap = function(element) {
     var $injector = $window.angular.element(element).injector();
     var $element = _jQuery(element);
 
@@ -24649,6 +24656,11 @@ angular.scenario.Application.prototype.executeAction = function(action) {
       $browser.notifyWhenNoOutstandingRequests(function() {
         action.call(self, $window, $element);
       });
+    });
+  };
+  angularInit($window.document, scenarioBootstrap, function(){
+    $window.angular.element($window.document.body).bind('ngBootstrap', function(){
+        angularInit($window.document, scenarioBootstrap);
     });
   });
 };
