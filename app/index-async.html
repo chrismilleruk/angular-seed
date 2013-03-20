@@ -36,8 +36,11 @@
       'js/filters.js',
       'js/directives.js'
     ], function() {
-      // when all is done, execute bootstrap angular application
-      angular.bootstrap(document, ['myApp']);
+      // add an artificial delay to simulate first time cache hit.
+      window.setTimeout(function() {
+        // when all is done, execute bootstrap angular application
+        angular.bootstrap(document, ['myApp']);
+      }, 1000);
     });
   </script>
   <title>My AngularJS App</title>
